@@ -105,11 +105,11 @@ async function getEvent(event) {
 
 let actions = {
     "Create an event": {
-        info: "Create an event with a title, start time, and end time.",
+        info: "Create an event with a title, start time, and end time. All parameters are required.",
         format: [{ title: "string", start: "ISOString", end: "ISOString" }],
     },
     "Create multiple events": {
-        info: "Create multiple events with a title, start time, and end time.",
+        info: "Create multiple events with a title, start time, and end time. All parameters are required.",
         format: [
             { title: "string", start: "ISOString", end: "ISOString" },
             "...",
@@ -255,7 +255,7 @@ export async function sendMessage() {
         )}`;
     } else if (numMessages === 0) {
         const events = await listEvents();
-        const events_prompt = `Here are the list of events from 12 hours ago to 12 hours into the future:\n\n${JSON.stringify(
+        const events_prompt = `Here are the list of events from 8 hours ago to 48 hours into the future:\n\n${JSON.stringify(
             events,
             null,
             2
@@ -268,7 +268,7 @@ export async function sendMessage() {
             { currentDate: new Date().toString() },
             null,
             2
-        )}\nDon't give me ISO string, give me the date and time like how I gave you.\nFor formatting, never use \`\`\`, just provide it like the previously mentioned example. When updating an event, always preserve the old color.\n\nHere is what I want to do: ${messageText}\n(you can always refresh this using "List events")\n${events_prompt}\n\nNow, what would you like to do? If you have all the information, please tell me 'Information acquired' then the action you want to take. Otherwise, either preferably "List events" to get information about a pre-existing event, or ask me a question to gather the necessary details. Remember to assume the title of the event or when it is. If I say "I need to eat lunch at 3," don't ask me the title of the event or when it is, you should know that it is "Lunch" at 3 PM on the same day. Don't ask the user something like, "What is the title of the event you want to update?", you should use the action "List events" to get the context.\n\nWhat you should do: Think out loud in your response about what the user wants to do before "Information acquired", using an action, or asking questions. Be extra careful when deleting events.`;
+        )}\nDon't give me ISO string, give me the date and time like how I gave you.\nFor formatting, never use \`\`\`, just provide it like the previously mentioned example. When updating an event, always preserve the old color.\n\nHere is what I want to do: ${messageText}\n\n(you can always refresh this using "List events")\n${events_prompt}\n\nNow, what would you like to do? If you have all the information, please tell me 'Information acquired' then the action you want to take. Otherwise, either preferably "List events" to get information about a pre-existing event, or ask me a question to gather the necessary details. Remember to assume the title of the event or when it is. If I say "I need to eat lunch at 3," don't ask me the title of the event or when it is, you should know that it is "Lunch" at 3 PM on the same day. Don't ask the user something like, "What is the title of the event you want to update?", you should use the action "List events" to get the context.\n\nWhat you should do: Think out loud in your response about what the user wants to do before "Information acquired", using an action, or asking questions. Be extra careful when deleting events.`;
     } else {
         prompt = messageText;
         prompt += `\n\nContext: ${JSON.stringify(
@@ -334,7 +334,7 @@ export async function sendMessage() {
         }
 
         if (loop === 1) {
-            prompt = `Tell the user that you have completed the action and ask if they need help with anything else. For this message only, you don't need to mention "Information acquired" or the action or the data. Just provide the message.`;
+            prompt = `Tell the user the summary of your action (include details of event scheduling if applicable), and ask if they need help with anything else. For this message only, you don't need to mention "Information acquired" or the action or the data. Just provide the message.`;
             result = await chat.sendMessage(prompt);
             response = await result.response;
             text = await response.text();
