@@ -51,7 +51,7 @@ async function listEvents(
 ) {
     if (!timeMin && !timeMax) {
         timeMin = new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString();
-        timeMax = new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString();
+        timeMax = new Date(Date.now() + 56 * 60 * 60 * 1000).toISOString();
     }
     let response;
     try {
@@ -120,7 +120,8 @@ let actions = {
         format: [
             {
                 title: "string",
-                eventId: "string",
+                eventId:
+                    "string (required. if you don't know, use 'List events' to find out. DON'T ask the user for the event ID.)",
                 start: "ISOString (required)",
                 end: "ISOString (required)",
                 color: "string (optional, only if the event color needs to be changed) choose the key (number) from: {'1': 'lavendar', '2': 'sage', '3': 'grape', '4': 'flamingo', '5': 'banana', '6': 'tangerine', '7': 'peacock', '8': 'graphite', '9': 'blueberry', '10': 'basil', '11': 'tomato'}",
@@ -132,7 +133,8 @@ let actions = {
         format: [
             {
                 title: "string",
-                eventId: "string",
+                eventId:
+                    "string (required. if you don't know, use 'List events' to find out. DON'T ask the user for the event ID.)",
                 start: "ISOString (required)",
                 end: "ISOString (required)",
                 color: "string (optional, only if the event color needs to be changed) choose the key (number) from: {'1': 'lavendar', '2': 'sage', '3': 'grape', '4': 'flamingo', '5': 'banana', '6': 'tangerine', '7': 'peacock', '8': 'graphite', '9': 'blueberry', '10': 'basil', '11': 'tomato'}",
@@ -142,14 +144,25 @@ let actions = {
     },
     "Delete an event": {
         info: "Delete an event with the event ID. Ensure you are deleting the correct event.",
-        format: [{ eventId: "string" }],
+        format: [
+            {
+                eventId:
+                    "string (required. if you don't know, use 'List events' to find out. DON'T ask the user for the event ID.)",
+            },
+        ],
     },
     "Delete multiple events": {
         info: "Delete multiple events with event IDs. Ensure you are deleting the correct events.",
-        format: [{ eventId: "string" }, "..."],
+        format: [
+            {
+                eventId:
+                    "string (required. if you don't know, use 'List events' to find out. DON'T ask the user for the event ID.)",
+            },
+            "...",
+        ],
     },
     "List events": {
-        info: "List all events within the timeframe. Useful for seeing the scheduled events and getting the event ID. Use this instead of asking the user whenever possible. By default, it lists events from 8 hours ago to 48 hours into the future.",
+        info: "List all events within the timeframe. Useful for seeing the scheduled events and getting the event ID. Use this instead of asking the user whenever possible. By default, it lists events from 8 hours ago to 56 hours into the future.",
         format: [
             {
                 start: "ISOString (optional, **only use if you are certain the event is after this start time**)",
@@ -158,12 +171,23 @@ let actions = {
         ],
     },
     "Get an event": {
-        info: "Get an event with an event ID. Useful for seeing the details of a specific event, including color.",
-        format: [{ eventId: "string" }],
+        info: "Get an event with an event ID. Useful for seeing the details of a specific event.",
+        format: [
+            {
+                eventId:
+                    "string (required. if you don't know, use 'List events' to find out. DON'T ask the user for the event ID.)",
+            },
+        ],
     },
     "Get multiple events": {
-        info: "Get multiple events with event IDs. Useful for seeing the details of specific events, including color.",
-        format: [{ eventId: "string" }, "..."],
+        info: "Get multiple events with event IDs. Useful for seeing the details of specific events.",
+        format: [
+            {
+                eventId:
+                    "string (required. if you don't know, use 'List events' to find out. DON'T ask the user for the event ID.)",
+            },
+            "...",
+        ],
     },
 };
 
@@ -255,7 +279,7 @@ export async function sendMessage() {
         )}`;
     } else if (numMessages === 0) {
         const events = await listEvents();
-        const events_prompt = `Here are the list of events from 8 hours ago to 48 hours into the future:\n\n${JSON.stringify(
+        const events_prompt = `Here are the list of events from 8 hours ago to 56 hours into the future:\n\n${JSON.stringify(
             events,
             null,
             2
@@ -264,7 +288,7 @@ export async function sendMessage() {
             actions,
             null,
             2
-        )}\n\nWhen a user provides input, you must ask clarifying questions if you do not have enough information. Once you have all the necessary details, respond with 'Information acquired: [Action]' followed by the appropriate JSON-formatted data.\n\nExample:\n\nUser: I want to move my lunch event by 2 hours\nYou: Information acquired: List events\n[\n{\n"start": null,\n"end": null\n}\n]\n\n Pay close attention to the relative time phrases. Always convert relative time phrases like "for the next hour" or "in 3 hours" into the same format, like the current time that I provided you, based on the current time provided in the context.\n\nContext: ${JSON.stringify(
+        )}\n\nWhen a user provides input, you must ask clarifying questions if you do not have enough information. Once you have all the necessary details, first think about what the user is asking, then respond with 'Information acquired: [Action]' followed by the appropriate JSON-formatted data.\n\nExample:\n\nUser: I want to move my lunch event by 2 hours\nYou: The user wants to move the event called "Lunch" by 2 hours for both the start and end times. I need to get the event ID to update it first. \nInformation acquired: List events\n[\n{\n"start": null,\n"end": null\n}\n]\n\n Pay close attention to the relative time phrases. Always convert relative time phrases like "for the next hour" or "in 3 hours" into the same format, like the current time that I provided you, based on the current time provided in the context.\n\nContext: ${JSON.stringify(
             { currentDate: new Date().toString() },
             null,
             2
@@ -334,7 +358,7 @@ export async function sendMessage() {
         }
 
         if (loop === 1) {
-            prompt = `Tell the user the summary of your action (include details of event scheduling if applicable), and ask if they need help with anything else. For this message only, you don't need to mention "Information acquired" or the action or the data. Just provide the message.`;
+            prompt = `ONLY FOR YOUR FOLLOWING RESPONSE: Tell the user the summary of your action (include details of event scheduling if applicable), and ask if they need help with anything else. For this message only, you don't need to mention "Information acquired" or the action or the data. Just provide the message. FOR ALL FUTURE RESPONSES AFTER THIS, you must follow the previous instructions.`;
             result = await chat.sendMessage(prompt);
             response = await result.response;
             text = await response.text();
@@ -346,4 +370,7 @@ export async function sendMessage() {
     }
     prompt = null;
     loop -= 1;
+    console.log(chat);
 }
+
+console.log("chat.js loaded");
