@@ -2,33 +2,6 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 
 let tokens = await import("./tokens.js");
 
-async function loadCalendar() {
-    try {
-        const response = await gapi.client.calendar.calendarList.list();
-        const calendars = response.result.items;
-        const primaryCalendar = calendars.find((cal) => cal.primary);
-
-        if (primaryCalendar) {
-            const calendarId = encodeURIComponent(primaryCalendar.id);
-            const src = `https://calendar.google.com/calendar/embed?src=${calendarId}&ctz=${primaryCalendar.timeZone}`;
-
-            // Get the iframe element
-            const iframe = document.getElementById("calendar-iframe");
-
-            // Update the src attribute
-            iframe.src = src;
-            console.log("Loaded calendar:", src);
-
-            // Force a reload of the iframe content
-            iframe.contentWindow.location.reload(true);
-        } else {
-            console.error("Primary calendar not found.");
-        }
-    } catch (error) {
-        console.error("Error loading calendar:", error);
-    }
-}
-
 async function createEvent(event) {
     await gapi.client.calendar.events.insert({
         calendarId: "primary",
@@ -61,19 +34,24 @@ async function updateEvent(event) {
     });
 }
 
-async function deleteEvent() {}
+async function deleteEvent(event) {
+    await gapi.client.calendar.events.delete({
+        calendarId: "primary",
+        eventId: event.eventId,
+    });
+}
 
 async function listEvents(
     timeMin = null,
     timeMax = null,
-    maxResults = 10,
+    maxResults = 20,
     orderBy = "startTime",
     showDeleted = false,
     singleEvents = true
 ) {
     if (!timeMin && !timeMax) {
-        timeMin = new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString();
-        timeMax = new Date(Date.now() + 12 * 60 * 60 * 1000).toISOString();
+        timeMin = new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString();
+        timeMax = new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString();
     }
     let response;
     try {
@@ -88,22 +66,42 @@ async function listEvents(
         };
         response = await gapi.client.calendar.events.list(request);
     } catch (err) {
-        document.getElementById("content").innerText = err.message;
-        return;
+        return "Error listing events";
     }
 
     const events = response.result.items;
-    console.log(events);
+
     let formattedEvents = events.map((event) => ({
         title: event.summary,
         eventId: event.id,
         start: event.start.dateTime,
         end: event.end.dateTime,
+        color: event.colorId,
     }));
     return formattedEvents;
 }
 
-async function getEvent() {}
+async function getEvent(event) {
+    let response;
+    try {
+        response = await gapi.client.calendar.events.get({
+            calendarId: "primary",
+            eventId: event.eventId,
+        });
+    } catch (err) {
+        return "Incorrect event ID";
+    }
+
+    event = response.result;
+    let formattedEvent = {
+        title: event.summary,
+        eventId: event.id,
+        start: event.start.dateTime,
+        end: event.end.dateTime,
+        color: event.colorId,
+    };
+    return formattedEvent;
+}
 
 let actions = {
     "Create an event": {
@@ -129,12 +127,29 @@ let actions = {
             },
         ],
     },
+    "Update multiple events": {
+        info: "Update multiple events with a title, event ID, start time, and end time.",
+        format: [
+            {
+                title: "string",
+                eventId: "string",
+                start: "ISOString (required)",
+                end: "ISOString (required)",
+                color: "string (optional, only if the event color needs to be changed) choose the key (number) from: {'1': 'lavendar', '2': 'sage', '3': 'grape', '4': 'flamingo', '5': 'banana', '6': 'tangerine', '7': 'peacock', '8': 'graphite', '9': 'blueberry', '10': 'basil', '11': 'tomato'}",
+            },
+            "...",
+        ],
+    },
     "Delete an event": {
-        info: "Delete an event with a title, start time, and end time.",
-        format: [{ title: "string", start: "ISOString", end: "ISOString" }],
+        info: "Delete an event with the event ID. Ensure you are deleting the correct event.",
+        format: [{ eventId: "string" }],
+    },
+    "Delete multiple events": {
+        info: "Delete multiple events with event IDs. Ensure you are deleting the correct events.",
+        format: [{ eventId: "string" }, "..."],
     },
     "List events": {
-        info: "List all events within the timeframe. Useful for seeing the scheduled events and getting the event ID. Use this instead of asking the user whenever possible.",
+        info: "List all events within the timeframe. Useful for seeing the scheduled events and getting the event ID. Use this instead of asking the user whenever possible. By default, it lists events from 8 hours ago to 48 hours into the future.",
         format: [
             {
                 start: "ISOString (optional, **only use if you are certain the event is after this start time**)",
@@ -143,8 +158,12 @@ let actions = {
         ],
     },
     "Get an event": {
-        info: "Get an event with an event ID.",
+        info: "Get an event with an event ID. Useful for seeing the details of a specific event, including color.",
         format: [{ eventId: "string" }],
+    },
+    "Get multiple events": {
+        info: "Get multiple events with event IDs. Useful for seeing the details of specific events, including color.",
+        format: [{ eventId: "string" }, "..."],
     },
 };
 
@@ -224,7 +243,9 @@ export async function sendMessage() {
     if (prompt) {
         // messageP.style.hidden = true;
     }
-    messagesElem.appendChild(messageP);
+    if (!prompt) {
+        messagesElem.appendChild(messageP);
+    }
 
     if (prompt) {
         prompt += `\n\nContext: ${JSON.stringify(
@@ -247,7 +268,7 @@ export async function sendMessage() {
             { currentDate: new Date().toString() },
             null,
             2
-        )}\nDon't give me ISO string, give me the date and time like how I gave you.\nFor formatting, never use \`\`\`, just provide it like the previously mentioned example.\n\nHere is what I want to do: ${messageText}\n(you can always refresh this using "List events")\n${events_prompt}\n\nNow, what would you like to do? If you have all the information, please tell me 'Information acquired' then the action you want to take. Otherwise, either preferably "List events" to get information about a pre-existing event, or ask me a question to gather the necessary details. Remember to assume the title of the event or when it is. If I say "I need to eat lunch at 3," don't ask me the title of the event or when it is, you should know that it is "Lunch" at 3 PM on the same day. Don't ask the user something like, "What is the title of the event you want to update?", you should use the action "List events" to get the context.\n\nHere's a tip: Think out loud about what the user wants to do before using an action or asking questions.`;
+        )}\nDon't give me ISO string, give me the date and time like how I gave you.\nFor formatting, never use \`\`\`, just provide it like the previously mentioned example. When updating an event, always preserve the old color.\n\nHere is what I want to do: ${messageText}\n(you can always refresh this using "List events")\n${events_prompt}\n\nNow, what would you like to do? If you have all the information, please tell me 'Information acquired' then the action you want to take. Otherwise, either preferably "List events" to get information about a pre-existing event, or ask me a question to gather the necessary details. Remember to assume the title of the event or when it is. If I say "I need to eat lunch at 3," don't ask me the title of the event or when it is, you should know that it is "Lunch" at 3 PM on the same day. Don't ask the user something like, "What is the title of the event you want to update?", you should use the action "List events" to get the context.\n\nWhat you should do: Think out loud in your response about what the user wants to do before "Information acquired", using an action, or asking questions. Be extra careful when deleting events.`;
     } else {
         prompt = messageText;
         prompt += `\n\nContext: ${JSON.stringify(
@@ -261,11 +282,16 @@ export async function sendMessage() {
     let result = await chat.sendMessage(prompt);
     let response = await result.response;
     let text = await response.text();
-    let messageResponse = document.createElement("p");
-    messageResponse.innerText = text;
-    messageResponse.className = "chatbot";
-    messagesElem.appendChild(messageResponse);
     let processedResponse = processAIResponse(text);
+    let messageResponse;
+    if (!processedResponse.infoAcquired) {
+        messageResponse = document.createElement("p");
+        messageResponse.innerText = text;
+        messageResponse.className = "chatbot";
+        messagesElem.appendChild(messageResponse);
+    } else {
+        console.log(text);
+    }
     if (processedResponse.infoAcquired) {
         // messageResponse.style.hidden = true;
         console.log(processedResponse);
@@ -287,7 +313,26 @@ export async function sendMessage() {
         } else if (processedResponse.action === "Update an event") {
             const event = processedResponse.data[0];
             await updateEvent(event);
+        } else if (processedResponse.action === "Update multiple events") {
+            for (let event of processedResponse.data) {
+                await updateEvent(event);
+            }
+        } else if (processedResponse.action === "Delete an event") {
+            const event = processedResponse.data[0];
+            await deleteEvent(event);
+        } else if (processedResponse.action === "Delete multiple events") {
+            for (let event of processedResponse.data) {
+                await deleteEvent(event);
+            }
+        } else if (processedResponse.action === "Get an event") {
+            const event = processedResponse.data[0];
+            await getEvent(event);
+        } else if (processedResponse.action === "Get multiple events") {
+            for (let event of processedResponse.data) {
+                await getEvent(event);
+            }
         }
+
         if (loop === 1) {
             prompt = `Tell the user that you have completed the action and ask if they need help with anything else. For this message only, you don't need to mention "Information acquired" or the action or the data. Just provide the message.`;
             result = await chat.sendMessage(prompt);
@@ -302,25 +347,3 @@ export async function sendMessage() {
     prompt = null;
     loop -= 1;
 }
-
-async function main() {
-    const authorize_button = document.getElementById("authorize_button");
-    authorize_button.onclick = handleAuthClick;
-    const signout_button = document.getElementById("signout_button");
-    signout_button.onclick = handleSignoutClick;
-    const send_message = document.getElementById("send_message");
-    send_message.onclick = sendMessage;
-    const gapi_element = document.getElementById("gapi");
-    gapi_element.onload = gapiLoaded;
-    const gis_element = document.getElementById("gis");
-    gis_element.onload = gisLoaded;
-    //
-}
-
-// export {
-//     gapiLoaded,
-//     gisLoaded,
-//     handleAuthClick,
-//     handleSignoutClick,
-//     sendMessage,
-// };

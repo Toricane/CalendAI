@@ -27,6 +27,7 @@ function gapiLoaded() {
  * discovery doc to initialize the API.
  */
 async function initializeGapiClient() {
+    tokens = await import("./tokens.js");
     await gapi.client.init({
         apiKey: tokens.API_KEY,
         discoveryDocs: [DISCOVERY_DOC],
