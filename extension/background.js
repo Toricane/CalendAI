@@ -53,6 +53,15 @@ async function removeToken() {
     });
 }
 
+function refreshGoogleCalendar() {
+    const currentUrl = window.location.href;
+    const googleCalendarUrl = "https://calendar.google.com";
+
+    if (currentUrl.startsWith(googleCalendarUrl)) {
+        window.location.reload();
+    }
+}
+
 // Listen for messages from the popup
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.action === "getToken") {
@@ -61,5 +70,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     } else if (message.action === "removeToken") {
         removeToken().then(sendResponse).catch(sendResponse);
         return true; // Indicates that we want to send a response asynchronously
+    } else if (message.action === "refreshGoogleCalendar") {
+        refreshGoogleCalendar();
     }
 });

@@ -361,6 +361,15 @@ function getAuthToken(interactive) {
     });
 }
 
+// Function to send a message to the content script
+function refreshGoogleCalendar() {
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        chrome.tabs.sendMessage(tabs[0].id, {
+            action: "refreshGoogleCalendar",
+        });
+    });
+}
+
 let history = [];
 
 function addToHistory(text) {
@@ -473,6 +482,7 @@ async function sendMessage() {
         if (processedResponse.finalAction) {
             prompt = `[System]\nONLY FOR YOUR FOLLOWING RESPONSE: Tell the user the summary of your action (include details of event scheduling if applicable), and ask if they need help with anything else. For this message only, you don't need to mention "Action" or the action or the data. Just provide the message. FOR ALL FUTURE RESPONSES AFTER THIS, you must follow the previous instructions.`;
             await sendMessage();
+            refreshGoogleCalendar();
         }
     }
     prompt = null;
