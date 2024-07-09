@@ -5,7 +5,7 @@ const { GoogleGenerativeAI } = require("@google/generative-ai");
 require("dotenv").config(); // Load environment variables from .env file
 
 const app = express();
-const port = 3000;
+const port = process.env.PORT;
 
 app.use(bodyParser.json());
 // CORS middleware
