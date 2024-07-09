@@ -193,6 +193,10 @@ app.post("/send-ai-message", async (req, res) => {
     }
 });
 
+app.get("/", (req, res) => {
+    res.sendFile(__dirname + "/get.html");
+});
+
 app.listen(port, () => {
     console.log(`Server running on port ${port}`);
 });
