@@ -275,7 +275,7 @@ let actions = {
         ],
     },
     "List events": {
-        info: "List all events within the timeframe. Useful for seeing the scheduled events and getting the event ID. Use this instead of asking the user whenever possible. By default, it lists events from 8 hours ago to 56 hours into the future.",
+        info: "List all events within the timeframe. Useful for seeing the scheduled events and getting the event ID. Use this instead of asking the user whenever possible. By default, it lists events from 8 hours ago to 56 hours into the future. If you wish to specify, you must specify both start and end times.",
         format: [
             {
                 start: "string, like [System] example (optional, **only use if you are certain the event is after this start time**)",
