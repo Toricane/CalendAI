@@ -197,6 +197,16 @@ app.get("/", (req, res) => {
     res.sendFile(__dirname + "/get.html");
 });
 
+app.use("/get.js", (req, res, next) => {
+    res.type(".js");
+    next();
+});
+
+app.use("/chat.js", (req, res, next) => {
+    res.type(".js");
+    next();
+});
+
 app.listen(port, () => {
     console.log(`Server running on port ${port}`);
 });
