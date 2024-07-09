@@ -156,8 +156,10 @@ Here are the list of events from 8 hours ago to 56 hours into the future:
 This is the user's request: {messageText}`;
 // </template>
 
+const baseURL = "https://calend-ai.vercel.app";
+
 async function createEvents(events) {
-    const response = await fetch("http://localhost:3000/create-events", {
+    const response = await fetch(`${baseURL}/create-events`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -180,7 +182,7 @@ async function updateEvents(events) {
             ...event,
         };
     });
-    const response = await fetch("http://localhost:3000/update-events", {
+    const response = await fetch(`${baseURL}/update-events`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -191,7 +193,7 @@ async function updateEvents(events) {
 }
 
 async function deleteEvents(events) {
-    const response = await fetch("http://localhost:3000/delete-events", {
+    const response = await fetch(`${baseURL}/delete-events`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -202,7 +204,7 @@ async function deleteEvents(events) {
 }
 
 async function listEvents(request) {
-    const response = await fetch("http://localhost:3000/list-events", {
+    const response = await fetch(`${baseURL}/list-events`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -213,7 +215,7 @@ async function listEvents(request) {
 }
 
 async function getEvents(events) {
-    const response = await fetch("http://localhost:3000/get-events", {
+    const response = await fetch(`${baseURL}/get-events`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -224,7 +226,7 @@ async function getEvents(events) {
 }
 
 async function sendAIMessage(prompt, history) {
-    const response = await fetch("http://localhost:3000/send-ai-message", {
+    const response = await fetch(`${baseURL}/send-ai-message`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
