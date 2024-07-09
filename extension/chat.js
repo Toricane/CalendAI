@@ -482,7 +482,8 @@ async function sendMessage() {
         if (processedResponse.finalAction) {
             prompt = `[System]\nONLY FOR YOUR FOLLOWING RESPONSE: Tell the user the summary of your action (include details of event scheduling if applicable), and ask if they need help with anything else. For this message only, you don't need to mention "Action" or the action or the data. Just provide the message. FOR ALL FUTURE RESPONSES AFTER THIS, you must follow the previous instructions.`;
             await sendMessage();
-            refreshGoogleCalendar();
+            // TODO: fix this
+            // refreshGoogleCalendar();
         }
     }
     prompt = null;
