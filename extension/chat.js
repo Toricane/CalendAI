@@ -173,9 +173,13 @@ async function updateEvents(events) {
     let eventIds = events.map((event) => ({ eventId: event.eventId }));
     const currentEvents = await getEvents(eventIds);
     events = events.map((event, index) => {
-        if (!(event.start && event.end)) {
+        if (!event.start) {
             event.start = currentEvents[index].start.dateTime;
+            delete currentEvents[index].start;
+        }
+        if (!event.end) {
             event.end = currentEvents[index].end.dateTime;
+            delete currentEvents[index].end;
         }
         return {
             ...currentEvents[index],
@@ -331,6 +335,7 @@ function processAIResponse(response) {
     } catch (e) {
         throw new Error("Invalid JSON data");
     }
+    console.log("DATA:", data);
 
     // Convert "start" and "end" times to ISO format
     data = data.map((event) => ({
