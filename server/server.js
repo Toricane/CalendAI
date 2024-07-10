@@ -143,7 +143,7 @@ app.post("/list-events", async (req, res) => {
             eventId: event.id,
             start: event.start.dateTime,
             end: event.end.dateTime,
-            color: event.colorId,
+            colorId: event.colorId,
         }));
 
         res.status(200).send(formattedEvents);

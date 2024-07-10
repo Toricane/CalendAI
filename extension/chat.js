@@ -135,6 +135,8 @@ ONLY FOR YOUR FOLLOWING RESPONSE: Tell the user the summary of your action (incl
 You: I have successfully created the events "Homework" and "Walk Dog" for this evening. Is there anything else you need help with?
 """
 
+When providing the JSON-formatted data, ensure that the strings are wrapped in double quotes (").
+
 Context:
 """
 {context}
@@ -215,6 +217,7 @@ async function listEvents(request) {
         },
         body: JSON.stringify({ token: token, request: request }),
     });
+    console.log(response.json());
     return response.json();
 }
 
@@ -333,6 +336,7 @@ function processAIResponse(response) {
     try {
         data = JSON.parse(jsonString);
     } catch (e) {
+        console.log("JSON data:", jsonString);
         throw new Error("Invalid JSON data");
     }
     console.log("DATA:", data);
@@ -369,9 +373,17 @@ function getAuthToken(interactive) {
 // Function to send a message to the content script
 function refreshGoogleCalendar() {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-        chrome.tabs.sendMessage(tabs[0].id, {
-            action: "refreshGoogleCalendar",
-        });
+        chrome.tabs.sendMessage(
+            tabs[0].id,
+            { action: "refreshGoogleCalendar" },
+            (response) => {
+                if (chrome.runtime.lastError) {
+                    console.error(chrome.runtime.lastError);
+                } else {
+                    console.log(response.status);
+                }
+            }
+        );
     });
 }
 
@@ -487,12 +499,11 @@ async function sendMessage() {
         if (processedResponse.finalAction) {
             prompt = `[System]\nONLY FOR YOUR FOLLOWING RESPONSE: Tell the user the summary of your action (include details of event scheduling if applicable), and ask if they need help with anything else. For this message only, you don't need to mention "Action" or the action or the data. Just provide the message. FOR ALL FUTURE RESPONSES AFTER THIS, you must follow the previous instructions.`;
             await sendMessage();
-            // TODO: fix this
-            // refreshGoogleCalendar();
         }
     }
     prompt = null;
     loop -= 1;
+    refreshGoogleCalendar();
 }
 
 const chatButton = document.getElementById("send_message");

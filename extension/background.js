@@ -70,7 +70,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     } else if (message.action === "removeToken") {
         removeToken().then(sendResponse).catch(sendResponse);
         return true; // Indicates that we want to send a response asynchronously
-    } else if (message.action === "refreshGoogleCalendar") {
+    }
+});
+
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    if (request.action === "refreshGoogleCalendar") {
         refreshGoogleCalendar();
+        sendResponse({ status: "refreshed" });
     }
 });
