@@ -217,7 +217,6 @@ async function listEvents(request) {
         },
         body: JSON.stringify({ token: token, request: request }),
     });
-    console.log(response.json());
     return response.json();
 }
 
@@ -503,7 +502,8 @@ async function sendMessage() {
     }
     prompt = null;
     loop -= 1;
-    refreshGoogleCalendar();
+    // TODO: fix this
+    // refreshGoogleCalendar();
 }
 
 const chatButton = document.getElementById("send_message");
