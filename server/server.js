@@ -8,21 +8,26 @@ const app = express();
 const port = process.env.PORT;
 
 app.use(bodyParser.json());
+
+// List of allowed origins
+const allowedOrigins = [
+    "chrome-extension://cnkiadfggjfkhlkbjmnohkonhpdbdjpc",
+    "chrome-extension://ibgenhokhbnjedblbdadcippmamblnip",
+    "chrome-extension://bhkceimljabijhhfkcgjemnfglpphaka",
+];
+
 // CORS middleware
-app.use(function (req, res, next) {
-    res.header(
-        "Access-Control-Allow-Origin",
-        "chrome-extension://cnkiadfggjfkhlkbjmnohkonhpdbdjpc"
-    );
-    res.header(
-        "Access-Control-Allow-Origin",
-        "chrome-extension://ibgenhokhbnjedblbdadcippmamblnip"
-    );
+app.use((req, res, next) => {
+    const origin = req.headers.origin;
+    if (allowedOrigins.includes(origin)) {
+        res.header("Access-Control-Allow-Origin", origin);
+    }
 
     res.header(
         "Access-Control-Allow-Headers",
         "Origin, X-Requested-With, Content-Type, Accept"
     );
+
     next();
 });
 
