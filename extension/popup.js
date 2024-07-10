@@ -140,3 +140,17 @@ messageInput.addEventListener("keydown", (event) => {
         sendMessage();
     }
 });
+
+// Auto-resize textarea
+const textarea = document.getElementById("message");
+
+textarea.addEventListener("input", function () {
+    this.style.height = "auto";
+    this.style.height = this.scrollHeight - 20 + "px";
+});
+
+// // Initialize the height of the textarea
+// window.addEventListener("load", function () {
+//     textarea.style.height = "auto";
+//     textarea.style.height = textarea.scrollHeight + "px";
+// });

@@ -14,6 +14,10 @@ app.use(function (req, res, next) {
         "Access-Control-Allow-Origin",
         "chrome-extension://cnkiadfggjfkhlkbjmnohkonhpdbdjpc"
     );
+    res.header(
+        "Access-Control-Allow-Origin",
+        "chrome-extension://ibgenhokhbnjedblbdadcippmamblnip"
+    );
 
     res.header(
         "Access-Control-Allow-Headers",
