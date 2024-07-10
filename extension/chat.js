@@ -10,7 +10,6 @@ function formatString(template, values) {
 
 function formatJSON(data) {
     let formatted = JSON.stringify(data, null, 2);
-    console.log("formatted:", formatted);
     // find the ISO dates and replace them with new Date().toString(), account for timezones
     if (formatted.includes("T") && formatted.includes("-")) {
         return formatted.replace(
@@ -320,7 +319,7 @@ let actions = {
                 start: "string, like [System] example (optional, will default to previous value)",
                 end: "string, like [System] example (optional, will default to previous value)",
                 colorId:
-                    "string (optional, only if the event color needs to be changed) choose the key (number) from: {'1': 'lavendar', '2': 'sage', '3': 'grape', '4': 'flamingo', '5': 'banana', '6': 'tangerine', '7': 'peacock (default)', '8': 'graphite', '9': 'blueberry', '10': 'basil', '11': 'tomato'}",
+                    "string (optional, only if the event color needs to be changed) choose the key (number) from: {'1': 'lavendar (light blue)', '2': 'sage (light green)', '3': 'grape (purple)', '4': 'flamingo (light red)', '5': 'banana (yellow)', '6': 'tangerine (orange)', '7': 'peacock (default)', '8': 'graphite (gray)', '9': 'blueberry (dark blue)', '10': 'basil (dark green)', '11': 'tomato (dark red)'}",
             },
             "...",
         ],
@@ -393,7 +392,6 @@ function processAIResponse(response) {
         console.log("JSON data:", jsonString);
         throw new Error("Invalid JSON data");
     }
-    console.log("DATA:", data);
 
     // Convert "start" and "end" times to ISO format
     data = data.map((event) => ({
